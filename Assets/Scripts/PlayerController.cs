@@ -6,7 +6,10 @@ public class PlayerController : MonoBehaviour
 {
     private Rigidbody playerRb;
     private GameObject focalPoint;
+    private float powerUpForce = 15.0f;
     public float speed = 5.0f;
+    public bool hasPowerup = false;
+    public GameObject powerupIndicator;
 
     // Start is called before the first frame update
     void Start()
@@ -21,5 +24,44 @@ public class PlayerController : MonoBehaviour
         float forwardInput = Input.GetAxis("Vertical");
 
         playerRb.AddForce(focalPoint.transform.forward * forwardInput * speed);
+
+        // set powerupIndicator position to be same with player position
+        powerupIndicator.transform.position = transform.position + new Vector3(0, -0.5f, 0);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.CompareTag("Powerup"))
+        {
+            hasPowerup = true;
+            powerupIndicator.gameObject.SetActive(true);
+            Destroy(other.gameObject);
+            StartCoroutine(PowerupCountdownRoutine());
+        }
+    }
+
+    // this is an special interface in C# that will help to do certain things such as a countdown timer outside our update loop
+    IEnumerator PowerupCountdownRoutine()
+    {
+        yield return new WaitForSeconds(7);
+        hasPowerup = false;
+        powerupIndicator.gameObject.SetActive(false);
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Enemy") && hasPowerup)
+        {
+            Debug.Log("Collided with: " + collision.gameObject.name + " with powerup set to " + hasPowerup);
+
+            // we use the enemy rigidbody to handle what will happen after collision
+            Rigidbody enemyRb = collision.gameObject.GetComponent<Rigidbody>();
+
+            // get direction the enemy is coming in and subtract the player's position to make the enemy fly opposite
+            Vector3 awayFromPlayer = collision.gameObject.transform.position - transform.position;
+
+            // we then apply the force on the enemy to make them fly away after contact with Powered up player
+            enemyRb.AddForce(awayFromPlayer * powerUpForce, ForceMode.Impulse);
+        }
     }
 }
