@@ -16,7 +16,8 @@ public class PlayerControllerX : MonoBehaviour
     private float powerupStrength = 25; // how hard to hit enemy with powerup
 
     private float boost = 20.0f;
-    
+    public ParticleSystem smokeParticle;
+
     void Start()
     {
         playerRb = GetComponent<Rigidbody>();
@@ -36,6 +37,7 @@ public class PlayerControllerX : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             playerRb.AddForce(focalPoint.transform.forward * boost, ForceMode.Impulse);
+            smokeParticle.Play();
         }
 
     }
